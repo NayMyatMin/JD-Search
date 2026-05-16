@@ -1,0 +1,51 @@
+candidate_name: Jane Doe
+current_role: Brand Manager
+current_company: ACME Co.
+years_experience: 7
+location_now: Bangkok, Thailand
+
+# Hard constraints — feed these into the gate step
+hard_requirements:
+  english_only: true          # no roles requiring Mandarin/Malay/Tamil/etc.
+  requires_sponsorship: true  # not a SG citizen or PR
+  reject_citizen_pr_only: true
+
+target_seniority:
+  min_years: 4
+  max_years: 10
+  acceptable_levels:
+    - Senior Executive
+    - Assistant Manager
+    - Manager
+    - Senior Manager
+    - Brand Manager
+    - Marketing Manager
+
+role_families:
+  - Regional Brand Marketing
+  - Go-to-Market Strategy
+  - Product Marketing
+  - Brand Strategy
+  - Integrated Campaigns
+  - Category Management
+  - Consumer Marketing
+
+target_geographies:
+  - Singapore
+  - SEA
+  - APAC
+  - Global (Singapore-based)
+
+sectors_of_interest:
+  - FMCG
+  - Beauty & Fragrance
+  - Personal Care
+  - Consumer Electronics
+  - FinTech / Payments / E-commerce
+  - B2B Industrial Tech
+
+avoid:
+  - Brand Ambassador / face-to-face promotion roles
+  - Pure sales roles (not marketing)
+  - Mandarin-required roles
+  - Singaporean/PR-only roles

@@ -1,0 +1,174 @@
+# Companies crawled via their ATS APIs.
+#
+# Only entries with `verified: true` are active. Everything else is skipped
+# at runtime but kept here as a backlog. To unlock a Workday tenant, run:
+#
+#   uv run jd verify-workday https://COMPANY.wdN.myworkdayjobs.com/SITE
+#
+# and paste the suggested block in.
+#
+# Fields:
+#   name         display name
+#   ats          workday | smartrecruiters | oracle_hcm | greenhouse | lever | ashby
+#   tenant       for workday: the first path segment (e.g., "unilever")
+#                for smartrecruiters: the company slug (e.g., "LVMH2")
+#   wd_shard     workday only: wd1|wd3|wd5 etc.
+#   wd_site      workday only: the site path segment
+#   oracle_pod   oracle_hcm only: full pod subdomain
+#   oracle_site  oracle_hcm only: siteNumber value
+#   careers_url  human-readable link for reference
+#   verified     set true after a live test returns non-zero SG jobs
+#   verified_on  YYYY-MM-DD
+#   notes        anything quirky
+
+companies:
+
+  # ============================================================
+  # VERIFIED 2026-04-11 — live-tested, returning valid JSON
+  # ============================================================
+
+  - name: Unilever
+    ats: workday
+    tenant: unilever
+    wd_shard: wd3
+    wd_site: Unilever_Experienced_Professionals
+    careers_url: https://unilever.wd3.myworkdayjobs.com/Unilever_Experienced_Professionals
+    verified: true
+    verified_on: "2026-04-11"
+    notes: "229 total jobs; SG count needs deeper pagination (site is US/UK-biased)."
+
+  - name: LVMH
+    ats: smartrecruiters
+    tenant: LVMH2
+    careers_url: https://careers.smartrecruiters.com/LVMH2
+    verified: true
+    verified_on: "2026-04-11"
+    notes: "55 Singapore jobs confirmed; includes regional beauty/fragrance roles."
+
+  - name: Honeywell
+    ats: oracle_hcm
+    oracle_pod: ibqbjb.fa.ocs.oraclecloud.com
+    oracle_site: Honeywell
+    careers_url: https://careers.honeywell.com/en/sites/Honeywell/jobs
+    verified: true
+    verified_on: "2026-04-11"
+    notes: "12 Singapore jobs confirmed."
+
+  # ============================================================
+  # UNVERIFIED — populated from research, need `verify-workday` pass
+  # Will be skipped at runtime until verified: true
+  # ============================================================
+
+  - name: Procter & Gamble
+    ats: workday
+    tenant: pg
+    wd_shard: wd5
+    wd_site: "1000"
+    careers_url: https://pg.wd5.myworkdayjobs.com/1000
+    verified: false
+
+  - name: Johnson & Johnson
+    ats: workday
+    tenant: jj
+    wd_shard: wd5
+    wd_site: JJ
+    careers_url: https://jj.wd5.myworkdayjobs.com/JJ
+    verified: false
+    notes: "Initial POST with site=JJ returned HTTP 400; verify exact site path."
+
+  - name: Kenvue
+    ats: workday
+    tenant: kenvue
+    wd_shard: wd5
+    wd_site: kenvue
+    careers_url: https://kenvue.wd5.myworkdayjobs.com/kenvue
+    verified: false
+
+  - name: Mondelez
+    ats: workday
+    tenant: mdlz
+    wd_shard: wd3
+    wd_site: External
+    careers_url: https://mdlz.wd3.myworkdayjobs.com/External
+    verified: false
+
+  - name: Coca-Cola
+    ats: workday
+    tenant: coke
+    wd_shard: wd1
+    wd_site: coca-cola-careers
+    careers_url: https://coke.wd1.myworkdayjobs.com/coca-cola-careers
+    verified: false
+    notes: "Initial POST returned HTTP 400; site path likely different."
+
+  - name: Kimberly-Clark
+    ats: workday
+    tenant: kimberlyclark
+    wd_shard: wd1
+    wd_site: GLOBAL
+    careers_url: https://kimberlyclark.wd1.myworkdayjobs.com/GLOBAL
+    verified: false
+
+  - name: Samsung
+    ats: workday
+    tenant: sec
+    wd_shard: wd3
+    wd_site: Samsung_Careers
+    careers_url: https://sec.wd3.myworkdayjobs.com/Samsung_Careers
+    verified: false
+    notes: "HTML page returns 200 but POST to CXS returned empty."
+
+  - name: Sony
+    ats: workday
+    tenant: sonyglobal
+    wd_shard: wd1
+    wd_site: SonyGlobalCareers
+    careers_url: https://sonyglobal.wd1.myworkdayjobs.com/SonyGlobalCareers
+    verified: false
+
+  - name: Dyson
+    ats: workday
+    tenant: dyson
+    wd_shard: wd3
+    wd_site: dyson_careers
+    careers_url: https://dyson.wd3.myworkdayjobs.com/dyson_careers
+    verified: false
+    notes: "378 total jobs, zero SG in first 20 — verify if regional site exists."
+
+  - name: Philips
+    ats: workday
+    tenant: philips
+    wd_shard: wd3
+    wd_site: jobs-and-careers
+    careers_url: https://philips.wd3.myworkdayjobs.com/jobs-and-careers
+    verified: false
+
+  - name: 3M
+    ats: workday
+    tenant: 3m
+    wd_shard: wd1
+    wd_site: Search
+    careers_url: https://3m.wd1.myworkdayjobs.com/Search
+    verified: false
+
+  - name: Haleon
+    ats: workday
+    tenant: gsknch
+    wd_shard: wd3
+    wd_site: GSKCareers
+    careers_url: https://gsknch.wd3.myworkdayjobs.com/GSKCareers
+    verified: false
+
+  - name: Emerson
+    ats: oracle_hcm
+    oracle_pod: hdjq.fa.us2.oraclecloud.com
+    oracle_site: CX_1
+    careers_url: https://hdjq.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1
+    verified: false
+
+  - name: Nestlé
+    ats: smartrecruiters
+    tenant: Nestle
+    careers_url: https://careers.smartrecruiters.com/Nestle
+    verified: false
+    notes: "Slug 'Nestle' returned 0 results — may have moved off SmartRecruiters."

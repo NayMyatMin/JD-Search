@@ -1,0 +1,107 @@
+run:
+  timezone: Asia/Singapore
+  schedule_time: "07:00"
+
+scoring:
+  model: gpt-5-mini
+  reasoning_effort: low     # minimal | low | medium | high
+  top_match_threshold: 75
+  worth_a_look_threshold: 60
+  # Max jobs sent to the LLM per run — a guardrail against cost blowouts.
+  # With the title prefilter below, 400 is plenty for a daily run.
+  max_jobs_per_run: 400
+
+filters:
+  # Substring match (case-insensitive) applied to job titles from adapters that
+  # fetch ALL Singapore roles (LVMH, Honeywell, Workday). MCF is exempt because
+  # it already filters by keyword at the API level. Drop this list to an empty
+  # list to disable the prefilter entirely.
+  relevant_title_keywords:
+    - brand
+    - marketing
+    - campaign
+    - communications
+    - category
+    - go-to-market
+    - go to market
+    - gtm
+    - growth
+    - advertising
+
+gate:
+  # When a JD is ambiguous about citizenship, show it with a warning rather than hide it
+  allow_borderline_citizenship: true
+  # Any of these mentioned as a REQUIREMENT (not nice-to-have) triggers rejection
+  reject_non_english_languages:
+    - Mandarin
+    - Chinese
+    - Malay
+    - Bahasa Melayu
+    - Tamil
+    - Cantonese
+    - Hokkien
+    - Teochew
+    - Hindi
+  target_seniority_min_years: 4
+  target_seniority_max_years: 10
+  # Titles that signal entry-level promo/junior work — hard-reject on match
+  reject_title_patterns:
+    - brand ambassador
+    - face-to-face marketing
+    - events promoter
+    - entry[- ]level
+    - fresh grad
+    - intern
+    - internship
+    - trainee
+    - management trainee
+
+sources:
+  mycareersfuture:
+    enabled: true
+    keywords:
+      - brand manager
+      - brand marketing
+      - marketing manager
+      - regional marketing
+      - product marketing
+      - go-to-market
+      - category manager
+    position_levels:
+      - Manager
+      - Senior Executive
+      - Professional
+    min_years_experience: 4
+    max_pages: 5
+
+  workday:
+    enabled: true
+    # Only companies with verified: true in companies.yaml are crawled
+    pagination_limit: 100
+    max_pages: 5
+    request_delay_seconds: 1.0
+
+  smartrecruiters:
+    enabled: true
+    country: sg
+    pagination_limit: 100
+
+  oracle_hcm:
+    enabled: true
+    pagination_limit: 25
+    keyword: Singapore
+
+  linkedin_jobspy:
+    enabled: false    # install with: uv pip install 'jd-search[linkedin]'
+    search_terms:
+      - brand marketing manager Singapore
+      - regional brand marketing Singapore
+      - marketing strategy manager Singapore
+    results_wanted: 30
+
+notification:
+  email:
+    enabled: false   # disabled for now — digest lives at digests/YYYY-Www/YYYY-MM-DD.md
+    provider: gmail_smtp
+    subject_template: "JD-Search digest {date} — {top_count} top / {borderline_count} borderline"
+    send_empty: true

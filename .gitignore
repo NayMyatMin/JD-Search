@@ -1,0 +1,40 @@
+# --- Secrets (NEVER commit these) ---
+.env
+.env.*
+!.env.example
+
+# --- Python / dev junk ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- macOS / editor junk ---
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# --- Local job database + LLM commentary (contains scraped jobs + PII) ---
+data/*.db
+data/*.db-journal
+data/*.db.backup.*
+data/resume_profile.txt
+
+# --- Real candidate profile (PII). Use profile.yaml.example as the template ---
+target_profile/profile.yaml
+
+# --- LaTeX resume sources (PII). Set JD_SEARCH_RESUME_DIR to point at yours ---
+resume/
+Thet_Myat_Noe_Thu_Resume/
+
+# --- Generated digests (contain AI commentary about candidate fit) ---
+# Daily digests ARE tracked on purpose — uncomment to stop publishing them:
+# digests/20*/

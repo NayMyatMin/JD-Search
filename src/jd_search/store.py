@@ -13,7 +13,7 @@ from typing import Any
 
 import sqlite_utils
 
-from .models import ExtractedJD, GateResult, JobPost, JobScore, StoredJob
+from .models import ApplyLinks, ExtractedJD, GateResult, JobPost, JobScore, StoredJob
 
 
 class Store:
@@ -40,6 +40,7 @@ class Store:
                     "extracted_json": str,
                     "gate_json": str,
                     "score_json": str,
+                    "apply_links_json": str,
                     "final_score": int,
                     "verdict": str,
                     "seen_in_digest_on": str,
@@ -52,6 +53,11 @@ class Store:
             self.db["jobs"].create_index(["verdict"])
             self.db["jobs"].create_index(["final_score"])
             self.db["jobs"].create_index(["seen_in_digest_on"])
+        else:
+            # Migration: add apply_links_json on existing DBs that pre-date this column.
+            existing_cols = {c.name for c in self.db["jobs"].columns}
+            if "apply_links_json" not in existing_cols:
+                self.db["jobs"].add_column("apply_links_json", str, not_null_default="")
 
         if "runs" not in self.db.table_names():
             self.db["runs"].create(
@@ -100,6 +106,7 @@ class Store:
                 "extracted_json": "",
                 "gate_json": "",
                 "score_json": "",
+                "apply_links_json": "",
                 "final_score": -1,
                 "verdict": "pending",
                 "seen_in_digest_on": "",
@@ -135,6 +142,30 @@ class Store:
         self.db["jobs"].update(
             jid, {"score_json": score.model_dump_json(), "final_score": score.score}
         )
+
+    def set_apply_links(self, jid: str, links: ApplyLinks) -> None:
+        self.db["jobs"].update(jid, {"apply_links_json": links.model_dump_json()})
+
+    def has_apply_links(self, jid: str) -> bool:
+        row = self.db["jobs"].get(jid)
+        return bool(row.get("apply_links_json"))
+
+    def iter_top_matches_needing_apply_links(
+        self, the_date: str, min_score: int
+    ) -> list[dict[str, Any]]:
+        """Today's keepers above `min_score` that don't yet have apply links."""
+        rows = self.db.query(
+            """
+            SELECT * FROM jobs
+            WHERE final_score >= ?
+              AND verdict = 'keep'
+              AND first_seen_at LIKE ?
+              AND (apply_links_json IS NULL OR apply_links_json = '')
+            ORDER BY final_score DESC
+            """,
+            [min_score, f"{the_date}%"],
+        )
+        return list(rows)
 
     def mark_in_digest(self, jid: str, on_date: str) -> None:
         self.db["jobs"].update(jid, {"seen_in_digest_on": on_date})

@@ -17,7 +17,7 @@ from typing import Any
 from markdown_it import MarkdownIt
 
 from .config import ScoringConfig, digests_dir
-from .models import ExtractedJD, GateResult, JobScore
+from .models import ApplyLinks, ExtractedJD, GateResult, JobScore
 
 # macOS Homebrew ships Cairo/Pango in /opt/homebrew/lib; Python's dynamic
 # loader doesn't pick them up automatically. Set the env var at import time
@@ -43,7 +43,9 @@ class DigestCounts:
     borderline_count: int
 
 
-def _row_to_parts(row: dict[str, Any]) -> tuple[JobScore | None, ExtractedJD | None, GateResult | None]:
+def _row_to_parts(
+    row: dict[str, Any],
+) -> tuple[JobScore | None, ExtractedJD | None, GateResult | None, ApplyLinks | None]:
     score = JobScore.model_validate_json(row["score_json"]) if row.get("score_json") else None
     extracted = (
         ExtractedJD.model_validate_json(row["extracted_json"])
@@ -51,7 +53,12 @@ def _row_to_parts(row: dict[str, Any]) -> tuple[JobScore | None, ExtractedJD | N
         else None
     )
     gate = GateResult.model_validate_json(row["gate_json"]) if row.get("gate_json") else None
-    return score, extracted, gate
+    apply_links = (
+        ApplyLinks.model_validate_json(row["apply_links_json"])
+        if row.get("apply_links_json")
+        else None
+    )
+    return score, extracted, gate, apply_links
 
 
 def render_digest(
@@ -111,7 +118,7 @@ def render_digest(
 
 
 def _render_row(r: dict[str, Any], is_top: bool) -> list[str]:
-    score, extracted, gate = _row_to_parts(r)
+    score, extracted, gate, apply_links = _row_to_parts(r)
     lines: list[str] = []
     title = r.get("title") or "(untitled)"
     company = r.get("company") or "Unknown"
@@ -121,6 +128,9 @@ def _render_row(r: dict[str, Any], is_top: bool) -> list[str]:
 
     lines.append(f"### [{s}] {title} — {company}")
     lines.append(f"*{location}* · [{url}]({url})")
+    apply_line = _apply_link_line(apply_links)
+    if apply_line:
+        lines.append(apply_line)
     if score:
         lines.append(
             f"- **Anchor similarity:** {score.anchor_similarity} · "
@@ -142,6 +152,25 @@ def _render_row(r: dict[str, Any], is_top: bool) -> list[str]:
         )
     lines.append("")
     return lines
+
+
+def _apply_link_line(links: ApplyLinks | None) -> str:
+    """Render the optional `- **Apply at:** ...` bullet for a row.
+
+    Returns empty string if no validated links exist.
+    """
+    if not links:
+        return ""
+    parts: list[str] = []
+    if links.linkedin:
+        parts.append(f"[LinkedIn]({links.linkedin.url})")
+    if links.company:
+        parts.append(f"[Company careers]({links.company.url})")
+    if links.other:
+        parts.append(f"[Apply page]({links.other.url})")
+    if not parts:
+        return ""
+    return "- **Apply at:** " + " · ".join(parts)
 
 
 def write_digest(run_date: date, body: str) -> Path:

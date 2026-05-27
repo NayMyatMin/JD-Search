@@ -105,3 +105,16 @@ notification:
     provider: gmail_smtp
     subject_template: "JD-Search digest {date} — {top_count} top / {borderline_count} borderline"
     send_empty: true
+
+apply_links:
+  # After scoring, look up canonical apply URLs (LinkedIn job posting + company
+  # careers page) for top-tier matches. Uses the OpenAI Responses API's built-in
+  # web_search tool, then validates by fetching the page and fuzzy-matching the
+  # title against the job title. Results cached in DB so re-runs are free.
+  enabled: true
+  min_score_for_lookup: 75      # only run on score ≥ this (matches top tier)
+  min_match_confidence: 85      # fuzzy title match threshold to surface a link
+  preferred_sources: [linkedin, company]   # both shown if both validate
+  search_model: gpt-5-mini      # cheap; uses web_search tool
+  timeout_seconds: 15.0         # per-URL fetch timeout
+  max_lookups_per_run: 20       # hard cap on lookups (cost safety)

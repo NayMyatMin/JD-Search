@@ -107,6 +107,21 @@ class NotificationConfig(BaseModel):
     email: EmailConfig = EmailConfig()
 
 
+class ApplyLinksConfig(BaseModel):
+    """Post-scoring web-search step that finds canonical apply URLs
+    (LinkedIn / company careers) for top-tier matches."""
+
+    enabled: bool = True
+    min_score_for_lookup: int = 75
+    min_match_confidence: int = 85
+    preferred_sources: list[Literal["linkedin", "company"]] = Field(
+        default_factory=lambda: ["linkedin", "company"]
+    )
+    search_model: str = "gpt-5-mini"
+    timeout_seconds: float = 15.0
+    max_lookups_per_run: int = 20
+
+
 class FiltersConfig(BaseModel):
     """Deterministic filters that run BEFORE the LLM.
 
@@ -151,6 +166,7 @@ class AppConfig(BaseModel):
     filters: FiltersConfig = FiltersConfig()
     sources: SourcesConfig = SourcesConfig()
     notification: NotificationConfig = NotificationConfig()
+    apply_links: ApplyLinksConfig = ApplyLinksConfig()
 
 
 # ---------------------------------------------------------------------------

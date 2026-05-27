@@ -138,6 +138,43 @@ class JobScore(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Stage 4.5 — canonical apply-link lookup (top matches only)
+# ---------------------------------------------------------------------------
+
+
+class ApplyCandidate(BaseModel):
+    """One URL returned by the web search step, before validation."""
+
+    url: str
+    source: Literal["linkedin", "company", "other"]
+    matched_title: str = Field(description="Title text the search engine surfaced for this URL.")
+
+
+class ApplyLinkSearchResult(BaseModel):
+    """Structured response from the web-search LLM call."""
+
+    candidates: list[ApplyCandidate] = Field(default_factory=list, max_length=4)
+
+
+class ApplyLink(BaseModel):
+    """A validated apply URL for a top-match posting."""
+
+    url: str
+    source: Literal["linkedin", "company", "other"]
+    matched_title: str
+    confidence: int = Field(ge=0, le=100, description="Fuzzy title match score (0–100).")
+    verified_at: datetime
+
+
+class ApplyLinks(BaseModel):
+    """Container for per-job apply links, since we may surface multiple sources."""
+
+    linkedin: ApplyLink | None = None
+    company: ApplyLink | None = None
+    other: ApplyLink | None = None
+
+
+# ---------------------------------------------------------------------------
 # Stage 5 — persisted record
 # ---------------------------------------------------------------------------
 
@@ -159,6 +196,7 @@ class StoredJob(BaseModel):
     extracted: ExtractedJD | None = None
     gate: GateResult | None = None
     score: JobScore | None = None
+    apply_links: ApplyLinks | None = None
     seen_in_digest_on: date | None = None
     dismissed: bool = False
 

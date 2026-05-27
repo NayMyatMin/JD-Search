@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv>=1.0",
     "markdown-it-py>=3.0",
     "weasyprint>=62.0",
+    "rapidfuzz>=3.0",
 ]
 
 [project.optional-dependencies]

@@ -19,6 +19,7 @@ from .adapters.mycareersfuture import MyCareersFutureScraper
 from .adapters.oracle_hcm import OracleHCMScraper
 from .adapters.smartrecruiters import SmartRecruitersScraper
 from .adapters.workday import WorkdayScraper
+from .apply_links import ApplyLinkFinder
 from .config import (
     AppConfig,
     Secrets,
@@ -160,6 +161,40 @@ def run(
                     kept += 1
                 elif gate_result.verdict == "borderline":
                     borderline += 1
+
+    # --- 3.5 Apply-link lookup (top matches only) -------------------------
+    if (
+        not dry_run
+        and cfg.apply_links.enabled
+        and secrets.openai_api_key
+    ):
+        pending_links = store.iter_top_matches_needing_apply_links(
+            the_date=run_date.isoformat(),
+            min_score=cfg.apply_links.min_score_for_lookup,
+        )[: cfg.apply_links.max_lookups_per_run]
+        if pending_links:
+            log.info(
+                "apply-links: looking up %d top match(es) with %s",
+                len(pending_links),
+                cfg.apply_links.search_model,
+            )
+            finder = ApplyLinkFinder(cfg.apply_links, secrets.openai_api_key)
+            try:
+                for row in pending_links:
+                    job = _row_to_jobpost(row)
+                    links = finder.find(job)
+                    store.set_apply_links(row["id"], links)
+                    found = sum(
+                        1 for x in (links.linkedin, links.company, links.other) if x
+                    )
+                    log.info(
+                        "apply-links: [%s] %s → %d link(s)",
+                        row.get("final_score"),
+                        job.title[:60],
+                        found,
+                    )
+            finally:
+                finder.close()
 
     # --- 4. Digest --------------------------------------------------------
     rows = store.iter_scored_today(run_date.isoformat())
